@@ -34,11 +34,15 @@ The project is a "world engine" simulating a fixed pool of souls cycling through
 
 ## AI Insights (`src/god_sim/insights/`)
 The system uses LLMs to interpret simulation results.
-- **Providers:** Supports `ollama` (default), `openai_compatible`, and `llama_cpp` (fully local).
+- **Providers:** Supports `ollama` (local dev), `openai_compatible`, and `llama_cpp` (recommended for Hugging Face).
+- **Format Note:** `llama_cpp` requires **GGUF** files. Old `.bin` files will not work.
+- **Recommended for HF Spaces:**
+    - `GOD_LLM_PROVIDER`: `llama_cpp`
+    - `GOD_LLM_HF_REPO`: `bartowski/gemma-2-2b-it-GGUF`
+    - `GOD_LLM_HF_FILE`: `gemma-2-2b-it-Q4_K_M.gguf`
 - **Workflow:**
     1. `build_run_summary` extracts deltas and trends from the simulation output.
     2. LLM analyzes JSON summary to provide bulleted insights and suggested experiments.
-- **Local LLM Setup:** Uses `Gemma 2b` (Ollama) or GGUF files (llama_cpp).
 
 ## Development Workflows
 
