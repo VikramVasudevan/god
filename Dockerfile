@@ -26,8 +26,9 @@ WORKDIR $HOME/app
 COPY --chown=user requirements.txt .
 
 # Install llama-cpp-python using a pre-built wheel to avoid timeout
-# We install it separately before the rest of the requirements
-RUN pip install --no-cache-dir \
+# We use PIP_ONLY_BINARY to force pip to fail instead of building from source if no wheel is found
+RUN PIP_ONLY_BINARY=llama-cpp-python pip install --no-cache-dir \
+    --prefer-binary \
     --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu \
     llama-cpp-python
 
