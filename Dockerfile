@@ -7,7 +7,8 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     GRADIO_ALLOW_FLAGGING=never \
     HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
+    PATH=/home/user/.local/bin:$PATH \
+    PYTHONPATH=$HOME/app/src
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
