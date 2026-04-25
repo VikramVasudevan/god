@@ -20,62 +20,9 @@ def info_box(title: str, body: str) -> None:
     with st.expander(f"ℹ️ {title}", expanded=False):
         st.write(body)
 
-with st.sidebar:
-    st.header("Scenario")
-    seed = st.number_input("Seed", min_value=0, max_value=1_000_000_000, value=42, step=1)
-    ticks = st.slider(
-        "Ticks (simulation duration)",
-        min_value=10,
-        max_value=2000,
-        value=200,
-        step=10,
-        help="How long to run the simulation (number of time steps/turns). More ticks = longer world evolution.",
-    )
-    num_souls = st.slider(
-        "Number of souls (population size)",
-        min_value=50,
-        max_value=5000,
-        value=300,
-        step=50,
-        help="How many souls/entities exist in the world. More souls = higher population and resource pressure per tick.",
-    )
-    st.caption("Ticks = for how long. Number of souls = for how many entities.")
-
-    st.header("Resources")
-    resource_capacity = st.number_input("Resource capacity", min_value=100.0, value=10_000.0, step=100.0)
-    resource_start = st.number_input("Resource start", min_value=0.0, value=6_000.0, step=100.0)
-    resource_replenish_rate = st.number_input("Replenish / tick", min_value=0.0, value=120.0, step=10.0)
-
-    st.header("Nature / bias")
-    initial_moral_bias_mean = st.slider("Mean moral bias (good ↔ bad)", min_value=-1.0, max_value=1.0, value=0.0, step=0.05)
-    initial_moral_bias_std = st.slider("Moral bias std", min_value=0.0, max_value=1.0, value=0.5, step=0.05)
-    rebirth_influence_strength = st.slider("Karma → rebirth influence", min_value=0.0, max_value=1.0, value=0.25, step=0.05)
-
-    st.header("Events")
-    event_rate = st.slider("Event rate", min_value=0.0, max_value=0.5, value=0.05, step=0.01)
-
-    run = st.button("Run simulation", type="primary")
-
-if run:
-    cfg = WorldConfig(
-        seed=int(seed),
-        ticks=int(ticks),
-        num_souls=int(num_souls),
-        resource_capacity=float(resource_capacity),
-        resource_start=float(resource_start),
-        resource_replenish_rate=float(resource_replenish_rate),
-        initial_moral_bias_mean=float(initial_moral_bias_mean),
-        initial_moral_bias_std=float(initial_moral_bias_std),
-        rebirth_influence_strength=float(rebirth_influence_strength),
-        event_rate=float(event_rate),
-    )
-
-    with st.spinner("Running..."):
-        out = run_simulation(cfg)
-
-    st.session_state["last_run_out"] = out
-    saved = append_run_history(out)
-    st.success(f"Saved run to history as `{saved['run_id']}`.")
+def render_dashboard(out: dict) -> None:
+    timestamp = out.get("created_at_utc", "Recent Run")
+    st.subheader(f"Dashboard: {timestamp}")
     df = pd.DataFrame(out["series"])
 
     c1, c2, c3, c4 = st.columns(4)
@@ -134,11 +81,80 @@ if run:
         st.json(out["config"])
         st.dataframe(df, use_container_width=True)
 
+with st.sidebar:
+    st.header("Scenario")
+    seed = st.number_input("Seed", min_value=0, max_value=1_000_000_000, value=42, step=1)
+    ticks = st.slider(
+        "Ticks (simulation duration)",
+        min_value=10,
+        max_value=2000,
+        value=200,
+        step=10,
+        help="How long to run the simulation (number of time steps/turns). More ticks = longer world evolution.",
+    )
+    num_souls = st.slider(
+        "Number of souls (population size)",
+        min_value=50,
+        max_value=5000,
+        value=300,
+        step=50,
+        help="How many souls/entities exist in the world. More souls = higher population and resource pressure per tick.",
+    )
+    st.caption("Ticks = for how long. Number of souls = for how many entities.")
+
+    st.header("Resources")
+    resource_capacity = st.number_input("Resource capacity", min_value=100.0, value=10_000.0, step=100.0)
+    resource_start = st.number_input("Resource start", min_value=0.0, value=6_000.0, step=100.0)
+    resource_replenish_rate = st.number_input("Replenish / tick", min_value=0.0, value=120.0, step=10.0)
+
+    st.header("Nature / bias")
+    initial_moral_bias_mean = st.slider("Mean moral bias (good ↔ bad)", min_value=-1.0, max_value=1.0, value=0.0, step=0.05)
+    initial_moral_bias_std = st.slider("Moral bias std", min_value=0.0, max_value=1.0, value=0.5, step=0.05)
+    rebirth_influence_strength = st.slider("Karma → rebirth influence", min_value=0.0, max_value=1.0, value=0.25, step=0.05)
+
+    st.header("Events")
+    event_rate = st.slider("Event rate", min_value=0.0, max_value=0.5, value=0.05, step=0.01)
+
+    run = st.button("Run simulation", type="primary")
+
+if run:
+    cfg = WorldConfig(
+        seed=int(seed),
+        ticks=int(ticks),
+        num_souls=int(num_souls),
+        resource_capacity=float(resource_capacity),
+        resource_start=float(resource_start),
+        resource_replenish_rate=float(resource_replenish_rate),
+        initial_moral_bias_mean=float(initial_moral_bias_mean),
+        initial_moral_bias_std=float(initial_moral_bias_std),
+        rebirth_influence_strength=float(rebirth_influence_strength),
+        event_rate=float(event_rate),
+    )
+
+    with st.spinner("Running..."):
+        out = run_simulation(cfg)
+
+    st.session_state["display_out"] = out
+    saved = append_run_history(out)
+    st.success(f"Saved run to history as `{saved['run_id']}`.")
+
+if "display_out" in st.session_state:
+    render_dashboard(st.session_state["display_out"])
+
 st.divider()
 st.subheader("Run History")
 history = load_run_history()
 if history:
     st.caption(f"Stored runs: {len(history)} (saved in `data/run_history.json`).")
+    
+    # Selection mechanism
+    run_options = {f"{r['run_id']} ({r['created_at_utc']})": r for r in reversed(history)}
+    selected_run_label = st.selectbox("Select a past run to view dashboard", options=list(run_options.keys()))
+    
+    if st.button("Load selected run"):
+        st.session_state["display_out"] = run_options[selected_run_label]
+        st.rerun()
+
     rows: list[dict[str, object]] = []
     for r in reversed(history[-20:]):
         final = r.get("final", {}) if isinstance(r.get("final"), dict) else {}
@@ -201,12 +217,12 @@ if provider == "ollama":
         else:
             st.success(f"Ollama is healthy and model `{model}` is available.")
 
-gen = st.button("Generate insights from last run")
+gen = st.button("Generate insights from last/selected run")
 
 if gen:
-    out = st.session_state.get("last_run_out")
+    out = st.session_state.get("display_out")
     if not out:
-        st.warning("Run a simulation first.")
+        st.warning("Run a simulation or select one from history first.")
     else:
         cfg = insight_config_from_env()
         # Override UI-selected provider/model
