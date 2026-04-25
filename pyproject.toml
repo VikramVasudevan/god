@@ -5,14 +5,18 @@ description = "A reincarnation-based social simulation sandbox."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "huggingface-hub",
+    "llama-cpp-python",
     "numpy",
     "pandas",
     "plotly",
+    "requests",
     "streamlit",
 ]
 
 [project.scripts]
 god-sim = "god_sim.cli:main"
+god-sim-download-model = "god_sim.insights.download:main"
 
 [tool.uv]
 package = true

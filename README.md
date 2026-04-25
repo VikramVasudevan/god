@@ -108,6 +108,43 @@ uv sync
 uv run streamlit run .\src\god_sim\app\streamlit_app.py
 ```
 
+### Local LLM insights (Gemma via Ollama)
+The UI can optionally ask a **local** model to summarize and interpret a run (no cloud required).
+
+1) Install and start Ollama, then pull a small Gemma model (example):
+
+```bash
+ollama pull gemma2:2b
+ollama serve
+```
+
+2) Run the app and click **Generate insights from last run**.
+
+3) Optional environment variables:
+- `GOD_LLM_PROVIDER`: `ollama` (default) or `openai_compatible`
+- `OLLAMA_BASE_URL`: default `http://localhost:11434`
+- `OLLAMA_MODEL`: default `gemma2:2b`
+- `OPENAI_BASE_URL`: default `http://localhost:1234/v1` (for local OpenAI-compatible servers)
+- `OPENAI_MODEL`: default `gemma`
+- `OPENAI_API_KEY`: only if your local server requires it
+
+### Fully offline LLM insights (no server) using your HF `.bin`
+Your Hugging Face repo contains a local file `gemma-2b-it-cpu-int4.bin` (uploaded here: [`vikramvasudevan/gemma-for-panchangam`](https://huggingface.co/vikramvasudevan/gemma-for-panchangam)).
+
+This project supports loading that file **directly in-process** using `llama-cpp-python` (no Ollama, no server).
+
+1) Download the model file into `.\models\`:
+
+```bash
+uv sync
+uv run god-sim-download-model --repo vikramvasudevan/gemma-for-panchangam --file gemma-2b-it-cpu-int4.bin --out models
+```
+
+2) Run the UI and choose provider `llama_cpp` in the Insights section, or set env vars:
+- `GOD_LLM_PROVIDER=llama_cpp`
+- `GOD_LLM_MODEL_PATH=models/gemma-2b-it-cpu-int4.bin`
+- (optional) `GOD_LLM_N_CTX=4096`, `GOD_LLM_N_THREADS=0`
+
 ### Recommended stack
 - **Python**: `dataclasses` + type hints
 - **Numerics**: `numpy` (optionally `pandas` if it helps)

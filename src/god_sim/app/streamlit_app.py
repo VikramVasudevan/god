@@ -6,12 +6,18 @@ import streamlit as st
 
 from god_sim.config import WorldConfig
 from god_sim.engine.sim import run_simulation
+from god_sim.insights.llm import generate_insights, insight_config_from_env
 
 
 st.set_page_config(page_title="GOD Simulator", layout="wide")
 
 st.title("GOD — Simulation Sandbox (V1)")
 st.caption("Tune parameters, run the world, inspect emergent metrics.")
+
+
+def info_box(title: str, body: str) -> None:
+    with st.expander(f"ℹ️ {title}", expanded=False):
+        st.write(body)
 
 with st.sidebar:
     st.header("Scenario")
@@ -51,6 +57,7 @@ if run:
     with st.spinner("Running..."):
         out = run_simulation(cfg)
 
+    st.session_state["last_run_out"] = out
     df = pd.DataFrame(out["series"])
 
     c1, c2, c3, c4 = st.columns(4)
@@ -58,17 +65,126 @@ if run:
     c2.metric("Final mean wellbeing", f"{df['mean_wellbeing'].iloc[-1]:.3f}")
     c3.metric("Final mean health", f"{df['mean_health'].iloc[-1]:.3f}")
     c4.metric("Final resources", f"{df['resource'].iloc[-1]:.1f}")
+    info_box(
+        "What these top metrics mean",
+        (
+            "- Final mean karma: average karma score at the end of the run.\n"
+            "- Final mean wellbeing: average quality-of-life proxy (0 to 1).\n"
+            "- Final mean health: average physical health proxy (0 to 1).\n"
+            "- Final resources: units left in the global shared resource pool."
+        ),
+    )
 
     st.subheader("Time series")
     left, right = st.columns(2)
     with left:
         st.plotly_chart(px.line(df, x="time", y=["mean_wellbeing", "mean_health"], title="Wellbeing & Health"), use_container_width=True)
+        info_box(
+            "Wellbeing & Health graph",
+            (
+                "Tracks average wellbeing and health over time. Rising lines usually indicate favorable "
+                "resource/event conditions; falling lines suggest sustained stress, scarcity, or frequent negative events."
+            ),
+        )
         st.plotly_chart(px.line(df, x="time", y=["mean_karma"], title="Mean karma"), use_container_width=True)
+        info_box(
+            "Mean karma graph",
+            (
+                "Shows average accumulated karma across souls. Upward trend means, on balance, actions/events are "
+                "adding positive karma; flat/declining means neutral or negative net behavior."
+            ),
+        )
     with right:
         st.plotly_chart(px.line(df, x="time", y=["resource"], title="Resources"), use_container_width=True)
+        info_box(
+            "Resources graph",
+            (
+                "Shows the level of the shared global resource pool. Persistent decline indicates structural scarcity; "
+                "stable or rising values indicate replenishment is keeping up with demand."
+            ),
+        )
         st.plotly_chart(px.bar(df, x="time", y="events", title="Events per tick"), use_container_width=True)
+        info_box(
+            "Events per tick graph",
+            (
+                "Counts random events that occurred each tick. Spikes represent volatile periods that can drive abrupt "
+                "changes in health, wellbeing, and karma."
+            ),
+        )
 
     with st.expander("Raw output"):
         st.json(out["config"])
         st.dataframe(df, use_container_width=True)
 
+st.divider()
+st.subheader("Insights (local Gemma)")
+st.caption("Uses a local model. Choose Ollama (server) or llama.cpp (fully offline). Configure via env vars in README.")
+
+insight_cols = st.columns([1, 1, 2])
+with insight_cols[0]:
+    provider = st.selectbox("Provider", options=["ollama", "llama_cpp", "openai_compatible"], index=0)
+with insight_cols[1]:
+    model = st.text_input(
+        "Model",
+        value="gemma2:2b" if provider == "ollama" else ("models/gemma-2b-it-cpu-int4.bin" if provider == "llama_cpp" else "gemma"),
+        help="For llama.cpp, set this to a local model file path.",
+    )
+
+gen = st.button("Generate insights from last run")
+
+if gen:
+    out = st.session_state.get("last_run_out")
+    if not out:
+        st.warning("Run a simulation first.")
+    else:
+        cfg = insight_config_from_env()
+        # Override UI-selected provider/model
+        if provider == "ollama":
+            cfg = type(cfg)(
+                provider="ollama",
+                ollama_base_url=cfg.ollama_base_url,
+                ollama_model=model,
+                openai_base_url=cfg.openai_base_url,
+                openai_model=cfg.openai_model,
+                openai_api_key=cfg.openai_api_key,
+                model_path=cfg.model_path,
+                n_ctx=cfg.n_ctx,
+                n_threads=cfg.n_threads,
+                temperature=cfg.temperature,
+                max_tokens=cfg.max_tokens,
+            )
+        elif provider == "llama_cpp":
+            cfg = type(cfg)(
+                provider="llama_cpp",
+                ollama_base_url=cfg.ollama_base_url,
+                ollama_model=cfg.ollama_model,
+                openai_base_url=cfg.openai_base_url,
+                openai_model=cfg.openai_model,
+                openai_api_key=cfg.openai_api_key,
+                model_path=model,
+                n_ctx=cfg.n_ctx,
+                n_threads=cfg.n_threads,
+                temperature=cfg.temperature,
+                max_tokens=cfg.max_tokens,
+            )
+        else:
+            cfg = type(cfg)(
+                provider="openai_compatible",
+                ollama_base_url=cfg.ollama_base_url,
+                ollama_model=cfg.ollama_model,
+                openai_base_url=cfg.openai_base_url,
+                openai_model=model,
+                openai_api_key=cfg.openai_api_key,
+                model_path=cfg.model_path,
+                n_ctx=cfg.n_ctx,
+                n_threads=cfg.n_threads,
+                temperature=cfg.temperature,
+                max_tokens=cfg.max_tokens,
+            )
+
+        try:
+            with st.spinner("Calling local model..."):
+                text = generate_insights(out, cfg=cfg)
+            st.markdown(text if text else "_(empty response)_")
+        except Exception as e:
+            st.error(f"Insight generation failed: {e}")
