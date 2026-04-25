@@ -167,9 +167,10 @@ def generate_insights(sim_output: dict[str, Any], cfg: InsightConfig | None = No
     if cfg.provider == "llama_cpp":
         try:
             from llama_cpp import Llama
-        except Exception as e:  # pragma: no cover
+        except ImportError as e:
             raise RuntimeError(
-                "llama-cpp-python is not available. Install deps with `uv sync`."
+                "llama-cpp-python is not installed or could not be loaded. "
+                "Ensure it is in requirements.txt and properly installed in the environment."
             ) from e
 
         model_path = Path(cfg.model_path)

@@ -3,8 +3,8 @@ title: GOD Simulation
 emoji: 🕉️
 colorFrom: indigo
 colorTo: purple
-sdk: streamlit
-app_file: src/god_sim/app/streamlit_app.py
+sdk: docker
+app_port: 7860
 pinned: false
 license: mit
 ---
