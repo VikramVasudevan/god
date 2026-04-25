@@ -20,6 +20,9 @@ RUN apt-get update && apt-get install -y \
     musl-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Fix for musl-linked binaries on Debian: create a symlink for the musl loader
+RUN ln -s /usr/lib/x86_64-linux-musl/libc.so /lib/libc.musl-x86_64.so.1
+
 # Create a non-root user
 RUN useradd -m -u 1000 user
 USER user
