@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     cmake \
     git \
+    musl \
+    musl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
