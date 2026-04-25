@@ -236,3 +236,61 @@ def generate_insights(sim_output: dict[str, Any], cfg: InsightConfig | None = No
     data = r.json()
     return str(data["choices"][0]["message"]["content"]).strip()
 
+def generate_comparative_insights(out_a: dict[str, Any], out_b: dict[str, Any], cfg: InsightConfig | None = None, timeout_s: int = 120) -> str:
+    cfg = cfg or insight_config_from_env()
+    summary_a = build_run_summary(out_a, df_tail_rows=10)
+    summary_b = build_run_summary(out_b, df_tail_rows=10)
+
+    user_prompt = (
+        "Compare these TWO simulation runs (A and B).\n\n"
+        f"RUN_A_SUMMARY:\n{json.dumps(summary_a, indent=2)}\n\n"
+        f"RUN_B_SUMMARY:\n{json.dumps(summary_b, indent=2)}\n\n"
+        "Analyze the impact of the parameter differences on the outcomes.\n"
+        "Return:\n"
+        "1) Key differences in longevity and stability\n"
+        "2) Causal link: which parameter change likely caused the most significant divergence?\n"
+        "3) Which world was 'healthier' and why?\n"
+    )
+
+    if cfg.provider == "ollama":
+        url = cfg.ollama_base_url.rstrip("/") + "/api/generate"
+        payload = {
+            "model": cfg.ollama_model,
+            "prompt": user_prompt,
+            "system": "You are a comparative analyst for world simulations. Focus on causal differences.",
+            "stream": False,
+            "options": {"temperature": cfg.temperature},
+        }
+        r = requests.post(url, json=payload, timeout=timeout_s)
+        r.raise_for_status()
+        return str(r.json().get("response", "")).strip()
+
+    if cfg.provider == "llama_cpp":
+        try:
+            from llama_cpp import Llama
+        except ImportError:
+            raise RuntimeError("llama-cpp-python not available.")
+
+        model_path = Path(cfg.model_path)
+        llm = Llama(model_path=str(model_path), n_ctx=cfg.n_ctx, n_threads=None if cfg.n_threads <= 0 else cfg.n_threads, verbose=False)
+        prompt = f"System: You are a comparative analyst.\nUser: {user_prompt}"
+        out = llm(prompt, max_tokens=cfg.max_tokens, temperature=cfg.temperature, stop=["</s>"])
+        return str(out["choices"][0]["text"]).strip()
+
+    # OpenAI-compatible
+    url = cfg.openai_base_url.rstrip("/") + "/chat/completions"
+    headers = {"Content-Type": "application/json"}
+    if cfg.openai_api_key:
+        headers["Authorization"] = f"Bearer {cfg.openai_api_key}"
+    payload = {
+        "model": cfg.openai_model,
+        "temperature": cfg.temperature,
+        "max_tokens": cfg.max_tokens,
+        "messages": [
+            {"role": "system", "content": "You are a comparative analyst."},
+            {"role": "user", "content": user_prompt},
+        ],
+    }
+    r = requests.post(url, headers=headers, json=payload, timeout=timeout_s)
+    r.raise_for_status()
+    return str(r.json()["choices"][0]["message"]["content"]).strip()

@@ -218,6 +218,30 @@ if history:
             }
         )
     st.dataframe(pd.DataFrame(rows), width="stretch")
+
+    st.subheader("⚖️ AI Comparison")
+    st.caption("Select two runs from history to compare them using AI.")
+    compare_runs = st.multiselect(
+        "Select exactly 2 runs",
+        options=list(run_options.keys()),
+        max_selections=2,
+        help="Select two runs to see how their parameters influenced the emergent world outcomes."
+    )
+    
+    if len(compare_runs) == 2:
+        if st.button("Generate Comparative Insights"):
+            from god_sim.insights.llm import generate_comparative_insights
+            run_a = run_options[compare_runs[0]]
+            run_b = run_options[compare_runs[1]]
+            
+            cfg_ins = insight_config_from_env()
+            # (Assuming standard provider/model selection from below or env)
+            try:
+                with st.spinner("Analyzing differences..."):
+                    comparison_text = generate_comparative_insights(run_a, run_b, cfg=cfg_ins)
+                st.markdown(comparison_text)
+            except Exception as e:
+                st.error(f"Comparison failed: {e}")
 else:
     st.caption("No runs stored yet. Run a simulation to create history.")
 
