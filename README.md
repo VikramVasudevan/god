@@ -1,0 +1,171 @@
+## GOD — a reincarnation-based social simulation
+
+This is a Python project to simulate a “world engine” where a **fixed pool of souls** cycles through **birth → life → death → rebirth**, accumulating **karma** and experiencing **scarce shared resources**, **social identity**, and **events**.
+
+The goal is not to “simulate everything”, but to build a configurable sandbox where we can run repeatable experiments and visualize emergent outcomes over many generations.
+
+### What this application is trying to answer
+- **Bias experiments**: What happens to world stability when the population is biased toward “good nature” vs “bad nature”?
+- **Scarcity vs abundance**: How do shared natural resources shape inequality, wellbeing, cooperation/conflict, and longevity?
+- **Identity dynamics**: How do race/faith/beauty norms influence social networks and opportunity, and how do they compound over rebirth cycles?
+- **Randomness vs “engineering”**: Are outcomes explainable from explicit rules and parameters, or do they appear chaotic until you measure them?
+
+### High-level model (simple, measurable, extensible)
+To keep the simulation testable, each philosophical concept is mapped to something measurable.
+
+- **Soul**: immutable id; persists across lifetimes; carries karma forward.
+- **Person (a body/life)**: a soul embodied for one lifetime with traits, identity markers, wellbeing, and relationships.
+- **Karma**: a numeric score (or vector later) updated by actions and outcomes; influences rebirth initialization.
+- **Nature (good/bad bias)**: a trait like `moral_bias ∈ [-1, 1]` affecting decisions (cooperate, hoard, harm, help).
+- **Resources**: global pool with replenishment; agents compete/coordinate to consume/produce.
+- **Society**: group labels (race/faith) and norms (beauty) influencing trust, mate choice, cooperation, and conflict.
+- **Events**: stochastic shocks (disease, drought, opportunity, tragedy) parameterized and observable in logs.
+
+### Why a phases approach
+This idea contains many interacting systems. If we build UI/visuals first, we’ll optimize for looks before we know the world model creates interesting behavior.
+
+So we build **engine-first**, prove the simulation produces meaningful metrics and repeatable experiments, then layer visualization and richer social dynamics.
+
+## Phased roadmap
+Each phase should end with something runnable and measurable.
+
+### Phase 0 — Foundations (scaffolding + repeatability)
+- Basic repo structure and packaging
+- Single config object (or YAML/JSON) that fully defines a run
+- Deterministic seeding for reproducible scenarios
+- Logging/tracing of key events
+
+### Phase 1 — Core life-cycle engine (V1 target)
+- A world with a **fixed soul pool**
+- Birth/life/death loop with a tick-based simulation (e.g., one tick = one year)
+- Shared resource pool with scarcity/abundance knobs
+- Karma accumulation and rebirth mapping
+- Metrics + simple charts
+
+### Phase 2 — Social interactions
+- Friendship/partnering rules
+- Cooperation/conflict mechanics
+- Network effects (who influences whom)
+- New metrics: cohesion, inequality, conflict rate, cluster formation
+
+### Phase 3 — Identity + norms
+- Race/faith labels and trust matrices
+- “Beauty” norms as socially defined advantage/disadvantage
+- Bias and discrimination parameters
+
+### Phase 4 — Rich events + scenario comparison UX
+- Expanded event catalogue and world shocks
+- Side-by-side scenario runner (good-biased vs bad-biased, scarcity vs abundance)
+- Saved runs, replay, and comparative dashboards
+
+## V1 technical plan (build the minimum interesting world)
+V1 is the smallest version that can answer: **does “good vs bad bias” + “scarcity vs abundance” meaningfully change world-level outcomes over generations?**
+
+### Deliverable (what “done” looks like for V1)
+- A single command starts an interactive app where you can:
+  - set parameters (seed, population size, resource abundance, bias toward good/bad nature)
+  - run for `N` ticks / generations
+  - view metrics and charts
+- Runs are reproducible via seed + config snapshot.
+
+### Recommended stack
+- **Python**: `dataclasses` + type hints
+- **Numerics**: `numpy` (optionally `pandas` if it helps)
+- **Visualization/UI**: **Streamlit** (fastest to iterate on “play God” sliders + charts)
+- **Plots**: `plotly` (or `matplotlib`)
+
+### Suggested code organization
+```
+god/
+  README.md
+  pyproject.toml
+  main.py                    # CLI or entrypoint (later can launch Streamlit)
+  src/god_sim/
+    __init__.py
+    config.py                # WorldConfig, scenario presets
+    domain/
+      soul.py                 # Soul (id, karma)
+      person.py               # Person (traits, identity, wellbeing, relationships)
+      world.py                # World state (population, resources, time)
+      resources.py            # ResourcePool (replenish, consume)
+      events.py               # Event types and effects
+    engine/
+      sim.py                  # run_simulation(), step_world()
+      rebirth.py              # Rebirth rules (karma → next-life initialization)
+      karma.py                # Karma updates from actions/outcomes
+    rules/
+      decisions.py            # cooperate/hoard/help/harm policy driven by moral_bias
+      social.py               # (minimal in V1) optional basic interaction
+    analytics/
+      metrics.py              # collectors + aggregations
+      report.py               # plot helpers
+    app/
+      streamlit_app.py        # sliders → run → charts
+```
+
+### Core data model (V1)
+Start numeric and simple; keep everything observable.
+
+- `Soul`
+  - `soul_id: int`
+  - `karma: float`
+
+- `Person`
+  - `soul_id: int`
+  - `age: int`
+  - `max_age: int` (sampled)
+  - `health: float`
+  - `wellbeing: float`
+  - `moral_bias: float` (good↔bad)
+  - `consumption_need: float`
+  - (optional in V1) `race`, `faith`, `beauty_score` (can exist but not heavily used yet)
+
+- `World`
+  - `time: int`
+  - `resource_pool: ResourcePool`
+  - `people: list[Person]`
+  - `souls: dict[int, Soul]`
+
+### Simulation loop (tick-based)
+For each tick:
+- Replenish global resources
+- For each person:
+  - consume resources (if insufficient, wellbeing/health drop)
+  - decide actions influenced by `moral_bias` (e.g., share vs hoard)
+  - sample an event (configurable probabilities)
+  - update wellbeing/health/karma
+- Age everyone, apply deaths
+- For each death:
+  - update soul karma summary if needed
+  - rebirth: create a new `Person` for the same `Soul`, with traits drawn from distributions shifted by karma
+- Collect metrics for this tick
+
+### Metrics to track in V1 (minimum set)
+- Population alive over time (should remain stable-ish given constant soul pool, but death/birth timing matters)
+- Mean/median karma and distribution (histogram)
+- Mean/median wellbeing and distribution
+- Resource pool level over time
+- Inequality proxy (simple: Gini of wellbeing or resources consumed; can be added later)
+- Event counts by type
+
+### Scenario knobs (V1 controls)
+- `seed`
+- `num_souls`
+- `ticks`
+- `resource_replenish_rate`
+- `resource_capacity`
+- `baseline_consumption_need`
+- `event_rate` and event mix
+- `initial_moral_bias_mean` and `initial_moral_bias_std`
+- `rebirth_influence_strength` (how strongly karma affects next-life traits)
+
+### Testing/validation (pragmatic)
+- Same config + seed produces the same metrics time series
+- Extreme scenarios behave sensibly:
+  - very low replenish rate → widespread suffering / collapse-like signals
+  - high replenish rate + good bias → higher wellbeing and lower conflict proxies (even if conflict is minimal in V1)
+
+---
+
+### Notes
+- The original project statement is preserved as `README.backup.md` in this folder.
