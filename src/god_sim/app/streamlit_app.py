@@ -200,20 +200,21 @@ if history:
 
     rows: list[dict[str, object]] = []
     for r in reversed(history[-20:]):
-        final = r.get("final", {}) if isinstance(r.get("final"), dict) else {}
         cfg_hist = r.get("config", {}) if isinstance(r.get("config"), dict) else {}
         rows.append(
             {
                 "run_id": r.get("run_id", ""),
                 "created_at_utc": r.get("created_at_utc", ""),
+                "seed": cfg_hist.get("seed", ""),
                 "ticks": cfg_hist.get("ticks", ""),
                 "num_souls": cfg_hist.get("num_souls", ""),
-                "resource_replenish_rate": cfg_hist.get("resource_replenish_rate", ""),
+                "res_cap": cfg_hist.get("resource_capacity", ""),
+                "res_start": cfg_hist.get("resource_start", ""),
+                "res_replenish": cfg_hist.get("resource_replenish_rate", ""),
+                "moral_bias": cfg_hist.get("initial_moral_bias_mean", ""),
+                "moral_bias_std": cfg_hist.get("initial_moral_bias_std", ""),
+                "karma_influence": cfg_hist.get("rebirth_influence_strength", ""),
                 "event_rate": cfg_hist.get("event_rate", ""),
-                "final_mean_karma": final.get("mean_karma", ""),
-                "final_mean_wellbeing": final.get("mean_wellbeing", ""),
-                "final_mean_health": final.get("mean_health", ""),
-                "final_resource": final.get("resource", ""),
             }
         )
     st.dataframe(pd.DataFrame(rows), use_container_width=True)
