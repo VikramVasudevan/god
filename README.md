@@ -38,7 +38,7 @@ Implementation-wise, these won’t be treated as “religion labels” like `fai
 
 The key constraint: we’ll keep the **core engine neutral** and make worldviews pluggable so we can run the same initial world under different lenses and compare outcomes.
 
-### Why a phases approach
+### Why a phased approach
 This idea contains many interacting systems. If we build UI/visuals first, we’ll optimize for looks before we know the world model creates interesting behavior.
 
 So we build **engine-first**, prove the simulation produces meaningful metrics and repeatable experiments, then layer visualization and richer social dynamics.
