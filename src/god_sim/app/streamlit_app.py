@@ -5,8 +5,9 @@ import plotly.express as px
 import streamlit as st
 
 from god_sim.config import WorldConfig
+from god_sim.analytics.history import append_run_history, load_run_history
 from god_sim.engine.sim import run_simulation
-from god_sim.insights.llm import generate_insights, insight_config_from_env
+from god_sim.insights.llm import check_ollama_health, generate_insights, insight_config_from_env
 
 
 st.set_page_config(page_title="GOD Simulator", layout="wide")
@@ -73,6 +74,8 @@ if run:
         out = run_simulation(cfg)
 
     st.session_state["last_run_out"] = out
+    saved = append_run_history(out)
+    st.success(f"Saved run to history as `{saved['run_id']}`.")
     df = pd.DataFrame(out["series"])
 
     c1, c2, c3, c4 = st.columns(4)
@@ -132,8 +135,36 @@ if run:
         st.dataframe(df, use_container_width=True)
 
 st.divider()
+st.subheader("Run History")
+history = load_run_history()
+if history:
+    st.caption(f"Stored runs: {len(history)} (saved in `data/run_history.json`).")
+    rows: list[dict[str, object]] = []
+    for r in reversed(history[-20:]):
+        final = r.get("final", {}) if isinstance(r.get("final"), dict) else {}
+        cfg_hist = r.get("config", {}) if isinstance(r.get("config"), dict) else {}
+        rows.append(
+            {
+                "run_id": r.get("run_id", ""),
+                "created_at_utc": r.get("created_at_utc", ""),
+                "ticks": cfg_hist.get("ticks", ""),
+                "num_souls": cfg_hist.get("num_souls", ""),
+                "resource_replenish_rate": cfg_hist.get("resource_replenish_rate", ""),
+                "event_rate": cfg_hist.get("event_rate", ""),
+                "final_mean_karma": final.get("mean_karma", ""),
+                "final_mean_wellbeing": final.get("mean_wellbeing", ""),
+                "final_mean_health": final.get("mean_health", ""),
+                "final_resource": final.get("resource", ""),
+            }
+        )
+    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+else:
+    st.caption("No runs stored yet. Run a simulation to create history.")
+
+st.divider()
 st.subheader("Insights (local Gemma)")
 st.caption("Uses a local model. Choose Ollama (server) or llama.cpp (fully offline). Configure via env vars in README.")
+st.info("For provider `llama_cpp`, use a local `.gguf` model file path. `.bin` files are not supported by llama.cpp.")
 
 insight_cols = st.columns([1, 1, 2])
 with insight_cols[0]:
@@ -144,6 +175,31 @@ with insight_cols[1]:
         value="gemma2:2b" if provider == "ollama" else ("models/gemma-2b-it-cpu-int4.bin" if provider == "llama_cpp" else "gemma"),
         help="For llama.cpp, set this to a local model file path.",
     )
+
+if provider == "ollama":
+    hc_cols = st.columns([1, 4])
+    with hc_cols[0]:
+        run_health_check = st.button("Check Ollama health")
+    with hc_cols[1]:
+        st.caption("Checks server reachability and whether the selected model exists locally.")
+
+    if run_health_check:
+        cfg0 = insight_config_from_env()
+        health = check_ollama_health(base_url=cfg0.ollama_base_url, model=model)
+        if not health["reachable"]:
+            st.error(
+                "Ollama server is not reachable. Start it first (example: `ollama serve`) "
+                f"and ensure base URL is `{cfg0.ollama_base_url}`.\n\nDetails: {health['error']}"
+            )
+        elif not health["model_present"]:
+            st.warning(
+                f"Ollama is running, but model `{model}` is not available locally. "
+                f"Run `ollama pull {model}` first."
+            )
+            if health["models"]:
+                st.caption("Available local models: " + ", ".join(health["models"]))
+        else:
+            st.success(f"Ollama is healthy and model `{model}` is available.")
 
 gen = st.button("Generate insights from last run")
 

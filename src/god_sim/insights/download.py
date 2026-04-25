@@ -12,7 +12,7 @@ DEFAULT_FILENAME = "gemma-2b-it-cpu-int4.bin"
 
 def download_model(repo_id: str, filename: str, out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = hf_hub_download(repo_id=repo_id, filename=filename, local_dir=str(out_dir), local_dir_use_symlinks=False)
+    path = hf_hub_download(repo_id=repo_id, filename=filename, local_dir=str(out_dir))
     return Path(path)
 
 

@@ -108,6 +108,15 @@ uv sync
 uv run streamlit run .\src\god_sim\app\streamlit_app.py
 ```
 
+### Run history persistence
+- Every simulation run is automatically saved to `data/run_history.json`.
+- Each record contains:
+  - `run_id`, `created_at_utc`
+  - `config`
+  - `final` metrics snapshot
+  - full `series` time-series data
+- The dashboard includes a **Run History** section to compare recent runs.
+
 ### Local LLM insights (Gemma via Ollama)
 The UI can optionally ask a **local** model to summarize and interpret a run (no cloud required).
 
@@ -131,7 +140,10 @@ ollama serve
 ### Fully offline LLM insights (no server) using your HF `.bin`
 Your Hugging Face repo contains a local file `gemma-2b-it-cpu-int4.bin` (uploaded here: [`vikramvasudevan/gemma-for-panchangam`](https://huggingface.co/vikramvasudevan/gemma-for-panchangam)).
 
-This project supports loading that file **directly in-process** using `llama-cpp-python` (no Ollama, no server).
+Important format note:
+- `llama-cpp-python` expects **GGUF** files for `provider=llama_cpp`.
+- A `.bin` file may download successfully but still fail to load in `llama_cpp`.
+- If you want to use your current `.bin`, use `provider=ollama` (server mode), or obtain/convert a GGUF model for fully offline `llama_cpp`.
 
 1) Download the model file into `.\models\`:
 
@@ -142,8 +154,15 @@ uv run god-sim-download-model --repo vikramvasudevan/gemma-for-panchangam --file
 
 2) Run the UI and choose provider `llama_cpp` in the Insights section, or set env vars:
 - `GOD_LLM_PROVIDER=llama_cpp`
-- `GOD_LLM_MODEL_PATH=models/gemma-2b-it-cpu-int4.bin`
+- `GOD_LLM_MODEL_PATH=models/<your-model>.gguf`
 - (optional) `GOD_LLM_N_CTX=4096`, `GOD_LLM_N_THREADS=0`
+
+If the model path is missing, the app now tries to **auto-download** from Hugging Face by default.
+
+Optional controls:
+- `GOD_LLM_AUTO_DOWNLOAD=1` (default) or `0`
+- `GOD_LLM_HF_REPO=vikramvasudevan/gemma-for-panchangam`
+- `GOD_LLM_HF_FILE=gemma-2b-it-cpu-int4.bin`
 
 ### Recommended stack
 - **Python**: `dataclasses` + type hints

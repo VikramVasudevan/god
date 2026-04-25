@@ -3,9 +3,12 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Literal
 
 import requests
+
+from .download import DEFAULT_FILENAME, DEFAULT_REPO, download_model
 
 Provider = Literal["ollama", "openai_compatible", "llama_cpp"]
 
@@ -25,6 +28,9 @@ class InsightConfig:
 
     # llama.cpp (fully local, no server)
     model_path: str = "models/gemma-2b-it-cpu-int4.bin"
+    auto_download_model: bool = True
+    hf_repo_id: str = DEFAULT_REPO
+    hf_filename: str = DEFAULT_FILENAME
     n_ctx: int = 4096
     n_threads: int = 0  # 0 = let llama.cpp decide
 
@@ -47,6 +53,9 @@ def insight_config_from_env() -> InsightConfig:
         openai_model=os.getenv("OPENAI_MODEL", "gemma"),
         openai_api_key=api_key if api_key else None,
         model_path=os.getenv("GOD_LLM_MODEL_PATH", "models/gemma-2b-it-cpu-int4.bin"),
+        auto_download_model=os.getenv("GOD_LLM_AUTO_DOWNLOAD", "1").strip().lower() in ("1", "true", "yes", "on"),
+        hf_repo_id=os.getenv("GOD_LLM_HF_REPO", DEFAULT_REPO),
+        hf_filename=os.getenv("GOD_LLM_HF_FILE", DEFAULT_FILENAME),
         n_ctx=int(os.getenv("GOD_LLM_N_CTX", "4096")),
         n_threads=int(os.getenv("GOD_LLM_N_THREADS", "0")),
         temperature=float(os.getenv("GOD_LLM_TEMPERATURE", "0.2")),
@@ -102,6 +111,32 @@ def build_run_summary(sim_output: dict[str, Any], df_tail_rows: int = 25) -> dic
     }
 
 
+def check_ollama_health(base_url: str, model: str, timeout_s: int = 5) -> dict[str, Any]:
+    """Return reachability and model availability for an Ollama host."""
+    url = base_url.rstrip("/") + "/api/tags"
+    try:
+        r = requests.get(url, timeout=timeout_s)
+        r.raise_for_status()
+        data = r.json()
+        models = data.get("models", [])
+        names = {m.get("name", "") for m in models if isinstance(m, dict)}
+        return {
+            "ok": True,
+            "reachable": True,
+            "model_present": model in names,
+            "models": sorted([n for n in names if n]),
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "reachable": False,
+            "model_present": False,
+            "models": [],
+            "error": str(e),
+        }
+
+
 def generate_insights(sim_output: dict[str, Any], cfg: InsightConfig | None = None, timeout_s: int = 120) -> str:
     cfg = cfg or insight_config_from_env()
     summary = build_run_summary(sim_output)
@@ -137,12 +172,40 @@ def generate_insights(sim_output: dict[str, Any], cfg: InsightConfig | None = No
                 "llama-cpp-python is not available. Install deps with `uv sync`."
             ) from e
 
-        llm = Llama(
-            model_path=cfg.model_path,
-            n_ctx=cfg.n_ctx,
-            n_threads=None if cfg.n_threads <= 0 else cfg.n_threads,
-            verbose=False,
-        )
+        model_path = Path(cfg.model_path)
+        if not model_path.exists():
+            if not cfg.auto_download_model:
+                raise RuntimeError(
+                    f"Model path does not exist: {cfg.model_path}. "
+                    "Set GOD_LLM_AUTO_DOWNLOAD=1 or download model manually."
+                )
+            downloaded = download_model(
+                repo_id=cfg.hf_repo_id,
+                filename=cfg.hf_filename,
+                out_dir=model_path.parent if str(model_path.parent) not in ("", ".") else Path("models"),
+            )
+            model_path = downloaded
+
+        if model_path.suffix.lower() != ".gguf":
+            raise RuntimeError(
+                "llama_cpp requires a GGUF model file. "
+                f"Current file is '{model_path.name}'. "
+                "Use a .gguf model path for provider=llama_cpp, or switch provider to 'ollama' "
+                "and use an Ollama model name."
+            )
+
+        try:
+            llm = Llama(
+                model_path=str(model_path),
+                n_ctx=cfg.n_ctx,
+                n_threads=None if cfg.n_threads <= 0 else cfg.n_threads,
+                verbose=False,
+            )
+        except Exception as e:
+            raise RuntimeError(
+                "Failed to load model with llama_cpp. "
+                "Ensure the file is a valid GGUF model compatible with llama.cpp."
+            ) from e
 
         prompt = f"{_system_prompt()}\n\n{user_prompt}"
         out = llm(
