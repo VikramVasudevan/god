@@ -232,7 +232,7 @@ with insight_cols[0]:
 with insight_cols[1]:
     model = st.text_input(
         "Model",
-        value="gemma2:2b" if provider == "ollama" else ("models/gemma-2b-it-cpu-int4.bin" if provider == "llama_cpp" else "gemma"),
+        value="gemma2:2b" if provider == "ollama" else ("models/gemma-2-2b-it-Q4_K_M.gguf" if provider == "llama_cpp" else "gemma"),
         help="For llama.cpp, set this to a local model file path.",
     )
 
