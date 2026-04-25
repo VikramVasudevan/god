@@ -22,8 +22,23 @@ def info_box(title: str, body: str) -> None:
 with st.sidebar:
     st.header("Scenario")
     seed = st.number_input("Seed", min_value=0, max_value=1_000_000_000, value=42, step=1)
-    ticks = st.slider("Ticks", min_value=10, max_value=2000, value=200, step=10)
-    num_souls = st.slider("Number of souls", min_value=50, max_value=5000, value=300, step=50)
+    ticks = st.slider(
+        "Ticks (simulation duration)",
+        min_value=10,
+        max_value=2000,
+        value=200,
+        step=10,
+        help="How long to run the simulation (number of time steps/turns). More ticks = longer world evolution.",
+    )
+    num_souls = st.slider(
+        "Number of souls (population size)",
+        min_value=50,
+        max_value=5000,
+        value=300,
+        step=50,
+        help="How many souls/entities exist in the world. More souls = higher population and resource pressure per tick.",
+    )
+    st.caption("Ticks = for how long. Number of souls = for how many entities.")
 
     st.header("Resources")
     resource_capacity = st.number_input("Resource capacity", min_value=100.0, value=10_000.0, step=100.0)
