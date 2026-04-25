@@ -27,10 +27,10 @@ class InsightConfig:
     openai_api_key: str | None = None
 
     # llama.cpp (fully local, no server)
-    model_path: str = "models/gemma-2b-it-cpu-int4.bin"
+    model_path: str = "models/gemma-2-2b-it-Q4_K_M.gguf"
     auto_download_model: bool = True
-    hf_repo_id: str = DEFAULT_REPO
-    hf_filename: str = DEFAULT_FILENAME
+    hf_repo_id: str = "bartowski/gemma-2-2b-it-GGUF"
+    hf_filename: str = "gemma-2-2b-it-Q4_K_M.gguf"
     n_ctx: int = 4096
     n_threads: int = 0  # 0 = let llama.cpp decide
 
@@ -52,10 +52,10 @@ def insight_config_from_env() -> InsightConfig:
         openai_base_url=os.getenv("OPENAI_BASE_URL", "http://localhost:1234/v1"),
         openai_model=os.getenv("OPENAI_MODEL", "gemma"),
         openai_api_key=api_key if api_key else None,
-        model_path=os.getenv("GOD_LLM_MODEL_PATH", "models/gemma-2b-it-cpu-int4.bin"),
+        model_path=os.getenv("GOD_LLM_MODEL_PATH", "models/gemma-2-2b-it-Q4_K_M.gguf"),
         auto_download_model=os.getenv("GOD_LLM_AUTO_DOWNLOAD", "1").strip().lower() in ("1", "true", "yes", "on"),
-        hf_repo_id=os.getenv("GOD_LLM_HF_REPO", DEFAULT_REPO),
-        hf_filename=os.getenv("GOD_LLM_HF_FILE", DEFAULT_FILENAME),
+        hf_repo_id=os.getenv("GOD_LLM_HF_REPO", "bartowski/gemma-2-2b-it-GGUF"),
+        hf_filename=os.getenv("GOD_LLM_HF_FILE", "gemma-2-2b-it-Q4_K_M.gguf"),
         n_ctx=int(os.getenv("GOD_LLM_N_CTX", "4096")),
         n_threads=int(os.getenv("GOD_LLM_N_THREADS", "0")),
         temperature=float(os.getenv("GOD_LLM_TEMPERATURE", "0.2")),
