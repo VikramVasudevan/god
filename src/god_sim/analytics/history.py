@@ -9,15 +9,25 @@ import numpy as np
 
 class SimulationEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, np.integer):
+        if isinstance(obj, (np.integer, np.int64, np.int32, np.int16, np.int8)):
             return int(obj)
-        if isinstance(obj, np.floating):
+        if isinstance(obj, (np.floating, np.float64, np.float32, np.float16)):
             return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
+        if isinstance(obj, (np.ndarray, np.generic)):
+            if isinstance(obj, np.bool_):
+                return bool(obj)
+            if hasattr(obj, "tolist"):
+                return obj.tolist()
+            return str(obj)
         if isinstance(obj, (datetime, Path)):
             return str(obj)
-        return super().default(obj)
+        try:
+            return super().default(obj)
+        except TypeError:
+            try:
+                return str(obj)
+            except Exception:
+                raise
 
 DEFAULT_HISTORY_PATH = Path("data/run_history.json")
 

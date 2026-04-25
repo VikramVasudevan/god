@@ -9178,5 +9178,332 @@
         "events": 13.0
       }
     ]
+  },
+  {
+    "run_id": "29be1f27-1f77-4859-824d-a34132d49e82",
+    "created_at_utc": "2026-04-25T10:46:59.869474+00:00",
+    "config": {
+      "seed": 42,
+      "ticks": 200,
+      "num_souls": 300,
+      "resource_capacity": 10000.0,
+      "resource_start": 6000.0,
+      "resource_replenish_rate": 120.0,
+      "baseline_consumption_need": 1.0,
+      "starvation_health_penalty": 0.15,
+      "wellbeing_from_surplus": 0.03,
+      "event_rate": 0.05,
+      "event_health_impact": 0.25,
+      "event_wellbeing_impact": 0.35,
+      "initial_moral_bias_mean": 0.0,
+      "initial_moral_bias_std": 0.5,
+      "rebirth_influence_strength": 0.25,
+      "karma_decay_per_tick": 0.0,
+      "min_max_age": 40,
+      "max_max_age": 90
+    },
+    "final": {
+      "time": 29.0,
+      "alive": 300.0,
+      "resource": 0.0,
+      "mean_karma": -0.006362134396396482,
+      "mean_wellbeing": 0.711920026653776,
+      "mean_health": 0.6793042528392241,
+      "events": 28.0,
+      "collapsed": true
+    },
+    "ticks_recorded": 29,
+    "series": [
+      {
+        "time": 1.0,
+        "alive": 300.0,
+        "resource": 5791.188655496856,
+        "mean_karma": -1.0660819471840754e-05,
+        "mean_wellbeing": 0.6603439090892494,
+        "mean_health": 0.841907727389613,
+        "events": 15.0,
+        "collapsed": false
+      },
+      {
+        "time": 2.0,
+        "alive": 300.0,
+        "resource": 5582.377310993712,
+        "mean_karma": 3.666623602340065e-05,
+        "mean_wellbeing": 0.6665780455533225,
+        "mean_health": 0.8362134106866628,
+        "events": 16.0,
+        "collapsed": false
+      },
+      {
+        "time": 3.0,
+        "alive": 300.0,
+        "resource": 5373.565966490568,
+        "mean_karma": -0.00034860721773265994,
+        "mean_wellbeing": 0.6698283487260045,
+        "mean_health": 0.8328771126551923,
+        "events": 15.0,
+        "collapsed": false
+      },
+      {
+        "time": 4.0,
+        "alive": 300.0,
+        "resource": 5164.754621987424,
+        "mean_karma": -0.0003339761061109363,
+        "mean_wellbeing": 0.6725829290711661,
+        "mean_health": 0.8287896388061992,
+        "events": 12.0,
+        "collapsed": false
+      },
+      {
+        "time": 5.0,
+        "alive": 300.0,
+        "resource": 4955.94327748428,
+        "mean_karma": -0.0007726408605528319,
+        "mean_wellbeing": 0.6759882710553117,
+        "mean_health": 0.8222313321169236,
+        "events": 8.0,
+        "collapsed": false
+      },
+      {
+        "time": 6.0,
+        "alive": 300.0,
+        "resource": 4747.131932981136,
+        "mean_karma": -0.0009973001438300015,
+        "mean_wellbeing": 0.6771794228166703,
+        "mean_health": 0.8166483496301552,
+        "events": 17.0,
+        "collapsed": false
+      },
+      {
+        "time": 7.0,
+        "alive": 300.0,
+        "resource": 4538.320588477992,
+        "mean_karma": -0.0013264280083540366,
+        "mean_wellbeing": 0.6803394212077227,
+        "mean_health": 0.8123781679463153,
+        "events": 16.0,
+        "collapsed": false
+      },
+      {
+        "time": 8.0,
+        "alive": 300.0,
+        "resource": 4329.509243974848,
+        "mean_karma": -0.0014528866574526034,
+        "mean_wellbeing": 0.6829509859127318,
+        "mean_health": 0.8085009996889966,
+        "events": 13.0,
+        "collapsed": false
+      },
+      {
+        "time": 9.0,
+        "alive": 300.0,
+        "resource": 4120.697899471704,
+        "mean_karma": -0.0023374636299283037,
+        "mean_wellbeing": 0.6839373786320584,
+        "mean_health": 0.8010446552175488,
+        "events": 13.0,
+        "collapsed": false
+      },
+      {
+        "time": 10.0,
+        "alive": 300.0,
+        "resource": 3911.886554968559,
+        "mean_karma": -0.0026339939563279832,
+        "mean_wellbeing": 0.6859504976030479,
+        "mean_health": 0.7943872068872709,
+        "events": 18.0,
+        "collapsed": false
+      },
+      {
+        "time": 11.0,
+        "alive": 300.0,
+        "resource": 3703.0752104654134,
+        "mean_karma": -0.003031045685071522,
+        "mean_wellbeing": 0.6889355600740757,
+        "mean_health": 0.789281334333398,
+        "events": 13.0,
+        "collapsed": false
+      },
+      {
+        "time": 12.0,
+        "alive": 300.0,
+        "resource": 3494.263865962268,
+        "mean_karma": -0.0033396888402743552,
+        "mean_wellbeing": 0.6906475464311808,
+        "mean_health": 0.7850204076397309,
+        "events": 12.0,
+        "collapsed": false
+      },
+      {
+        "time": 13.0,
+        "alive": 300.0,
+        "resource": 3285.4525214591226,
+        "mean_karma": -0.002948420621339535,
+        "mean_wellbeing": 0.6951131960675339,
+        "mean_health": 0.7807504622765574,
+        "events": 21.0,
+        "collapsed": false
+      },
+      {
+        "time": 14.0,
+        "alive": 300.0,
+        "resource": 3076.6411769559772,
+        "mean_karma": -0.002874053200717689,
+        "mean_wellbeing": 0.6986440871606325,
+        "mean_health": 0.7774920266070056,
+        "events": 14.0,
+        "collapsed": false
+      },
+      {
+        "time": 15.0,
+        "alive": 300.0,
+        "resource": 2867.829832452832,
+        "mean_karma": -0.002812884383409349,
+        "mean_wellbeing": 0.7015300135249318,
+        "mean_health": 0.7729953947451893,
+        "events": 9.0,
+        "collapsed": false
+      },
+      {
+        "time": 16.0,
+        "alive": 300.0,
+        "resource": 2659.0184879496865,
+        "mean_karma": -0.003059587781595461,
+        "mean_wellbeing": 0.702486906239951,
+        "mean_health": 0.7682433161777408,
+        "events": 20.0,
+        "collapsed": false
+      },
+      {
+        "time": 17.0,
+        "alive": 300.0,
+        "resource": 2450.207143446541,
+        "mean_karma": -0.0037996612396219423,
+        "mean_wellbeing": 0.7017381492099677,
+        "mean_health": 0.7607332955908543,
+        "events": 11.0,
+        "collapsed": false
+      },
+      {
+        "time": 18.0,
+        "alive": 300.0,
+        "resource": 2241.3957989433957,
+        "mean_karma": -0.0040575614238893415,
+        "mean_wellbeing": 0.7042462709988168,
+        "mean_health": 0.754911808064549,
+        "events": 23.0,
+        "collapsed": false
+      },
+      {
+        "time": 19.0,
+        "alive": 300.0,
+        "resource": 2032.5844544402496,
+        "mean_karma": -0.0047270745323893726,
+        "mean_wellbeing": 0.7037826883204681,
+        "mean_health": 0.7503618053894324,
+        "events": 13.0,
+        "collapsed": false
+      },
+      {
+        "time": 20.0,
+        "alive": 300.0,
+        "resource": 1823.7731099371033,
+        "mean_karma": -0.005039481058183492,
+        "mean_wellbeing": 0.7043769365760746,
+        "mean_health": 0.7429657999269089,
+        "events": 16.0,
+        "collapsed": false
+      },
+      {
+        "time": 21.0,
+        "alive": 300.0,
+        "resource": 1614.961765433956,
+        "mean_karma": -0.005315973517100889,
+        "mean_wellbeing": 0.708174696733242,
+        "mean_health": 0.7374270592705253,
+        "events": 16.0,
+        "collapsed": false
+      },
+      {
+        "time": 22.0,
+        "alive": 300.0,
+        "resource": 1406.1504209308089,
+        "mean_karma": -0.005269720400965907,
+        "mean_wellbeing": 0.7167430308822857,
+        "mean_health": 0.7360912732883659,
+        "events": 18.0,
+        "collapsed": false
+      },
+      {
+        "time": 23.0,
+        "alive": 300.0,
+        "resource": 1197.4121192241125,
+        "mean_karma": -0.00563110660260085,
+        "mean_wellbeing": 0.7150258340295761,
+        "mean_health": 0.7317714285088164,
+        "events": 15.0,
+        "collapsed": false
+      },
+      {
+        "time": 24.0,
+        "alive": 300.0,
+        "resource": 988.8995493119382,
+        "mean_karma": -0.005842102792165956,
+        "mean_wellbeing": 0.7141575409473815,
+        "mean_health": 0.7278652675784323,
+        "events": 11.0,
+        "collapsed": false
+      },
+      {
+        "time": 25.0,
+        "alive": 300.0,
+        "resource": 780.5777437021876,
+        "mean_karma": -0.0051941831264151845,
+        "mean_wellbeing": 0.7196872136040257,
+        "mean_health": 0.7252263592039147,
+        "events": 15.0,
+        "collapsed": false
+      },
+      {
+        "time": 26.0,
+        "alive": 300.0,
+        "resource": 572.1805709136289,
+        "mean_karma": -0.005466315180878296,
+        "mean_wellbeing": 0.7188966062416869,
+        "mean_health": 0.7216678215589614,
+        "events": 16.0,
+        "collapsed": false
+      },
+      {
+        "time": 27.0,
+        "alive": 300.0,
+        "resource": 363.78339812507005,
+        "mean_karma": -0.005867464696898862,
+        "mean_wellbeing": 0.7197153676157635,
+        "mean_health": 0.7160454084309805,
+        "events": 20.0,
+        "collapsed": false
+      },
+      {
+        "time": 28.0,
+        "alive": 300.0,
+        "resource": 155.5766014076738,
+        "mean_karma": -0.006128349718719009,
+        "mean_wellbeing": 0.7189204506416692,
+        "mean_health": 0.7094550844647237,
+        "events": 10.0,
+        "collapsed": false
+      },
+      {
+        "time": 29.0,
+        "alive": 300.0,
+        "resource": 0.0,
+        "mean_karma": -0.006362134396396482,
+        "mean_wellbeing": 0.711920026653776,
+        "mean_health": 0.6793042528392241,
+        "events": 28.0,
+        "collapsed": true
+      }
+    ]
   }
 ]
