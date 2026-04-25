@@ -17,18 +17,51 @@ import streamlit as st
 from god_sim.config import WorldConfig
 from god_sim.analytics.history import append_run_history, load_run_history
 from god_sim.engine.sim import run_simulation
+from god_sim.engine.optimizer import run_optimization_step
 from god_sim.insights.llm import check_ollama_health, generate_insights, insight_config_from_env
-
 
 st.set_page_config(page_title="GOD Simulator", layout="wide")
 
 st.title("GOD — Simulation Sandbox (V1)")
 st.caption("Tune parameters, run the world, inspect emergent metrics.")
 
+# Use tabs to organize the UI
+tab_main, tab_optimizer = st.tabs(["🌎 Main Simulator", "⚖️ World Optimizer"])
 
-def info_box(title: str, body: str) -> None:
-    with st.expander(f"ℹ️ {title}", expanded=False):
-        st.write(body)
+with tab_optimizer:
+    st.header("Sustainable Equilibrium Optimizer")
+    st.write("Find the parameters that keep the world alive the longest for a given resource capacity.")
+    
+    fixed_capacity = st.number_input("Fixed Resource Capacity", min_value=100.0, value=10000.0, step=100.0)
+    opt_iterations = st.slider("Number of trials", min_value=5, max_value=100, value=20)
+    
+    if st.button("Start Optimization", type="primary"):
+        with st.spinner("Hunting for the optimal world configuration..."):
+            opt_out = run_optimization_step(fixed_capacity, iterations=opt_iterations)
+        
+        st.success(f"Optimization complete! Best longevity: {opt_out['best_fitness']/10 if opt_out['best_fitness'] > 1000 else opt_out['best_fitness']} ticks.")
+        
+        best_cfg = opt_out["best_config"]
+        st.subheader("Optimal Parameters Found")
+        
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Num Souls", best_cfg.num_souls)
+        col2.metric("Replenish Rate", f"{best_cfg.resource_replenish_rate:.2f}")
+        col3.metric("Initial Moral Bias", f"{best_cfg.initial_moral_bias_mean:.2f}")
+        
+        col4, col5, col6 = st.columns(3)
+        col4.metric("Karmic Influence", f"{best_cfg.rebirth_influence_strength:.2f}")
+        col5.metric("Event Rate", f"{best_cfg.event_rate:.3f}")
+        col6.metric("Longevity (Ticks)", opt_out['best_config'].ticks if opt_out['best_fitness'] > 1000 else opt_out['best_fitness'])
+
+        if st.button("Load Optimal Run to Main Dashboard"):
+            st.session_state["display_out"] = run_simulation(best_cfg)
+            st.rerun()
+
+with tab_main:
+    def info_box(title: str, body: str) -> None:
+        with st.expander(f"ℹ️ {title}", expanded=False):
+            st.write(body)
 
 def render_dashboard(out: dict) -> None:
     timestamp = out.get("created_at_utc", "Recent Run")

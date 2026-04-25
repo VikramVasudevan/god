@@ -162,6 +162,7 @@ def step_world(world: World, cfg: WorldConfig, rng: np.random.Generator) -> dict
         "mean_wellbeing": float(np.mean(wellbeing)),
         "mean_health": float(np.mean(health)),
         "events": float(events_count),
+        "collapsed": len(alive_people) == 0 or world.resource_pool.amount <= 0 or abs(np.mean(karma)) < 1e-6
     }
 
 
@@ -171,7 +172,10 @@ def run_simulation(cfg: WorldConfig) -> dict[str, object]:
     series: list[dict[str, float]] = []
 
     for _ in range(int(cfg.ticks)):
-        series.append(step_world(world, cfg, rng))
+        step_data = step_world(world, cfg, rng)
+        series.append(step_data)
+        if step_data.get("collapsed"):
+            break
 
     return {
         "config": asdict(cfg),
