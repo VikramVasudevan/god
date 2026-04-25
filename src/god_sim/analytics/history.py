@@ -13,9 +13,9 @@ class SimulationEncoder(json.JSONEncoder):
             return int(obj)
         if isinstance(obj, (np.floating, np.float64, np.float32, np.float16)):
             return float(obj)
+        if isinstance(obj, (np.bool_, bool)):
+            return bool(obj)
         if isinstance(obj, (np.ndarray, np.generic)):
-            if isinstance(obj, np.bool_):
-                return bool(obj)
             if hasattr(obj, "tolist"):
                 return obj.tolist()
             return str(obj)
@@ -24,11 +24,7 @@ class SimulationEncoder(json.JSONEncoder):
         try:
             return super().default(obj)
         except TypeError:
-            try:
-                return str(obj)
-            except Exception:
-                raise
-
+            return str(obj)
 DEFAULT_HISTORY_PATH = Path("data/run_history.json")
 
 
