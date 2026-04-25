@@ -9,6 +9,7 @@ The goal is not to “simulate everything”, but to build a configurable sandbo
 - **Scarcity vs abundance**: How do shared natural resources shape inequality, wellbeing, cooperation/conflict, and longevity?
 - **Identity dynamics**: How do race/faith/beauty norms influence social networks and opportunity, and how do they compound over rebirth cycles?
 - **Randomness vs “engineering”**: Are outcomes explainable from explicit rules and parameters, or do they appear chaotic until you measure them?
+- **Philosophical lenses**: If we encode different schools of thought (e.g., Advaita, Vishishtadvaita, Buddhist frameworks) as rule sets, how do they change emergent behavior and “liberation” outcomes?
 
 ### High-level model (simple, measurable, extensible)
 To keep the simulation testable, each philosophical concept is mapped to something measurable.
@@ -20,6 +21,22 @@ To keep the simulation testable, each philosophical concept is mapped to somethi
 - **Resources**: global pool with replenishment; agents compete/coordinate to consume/produce.
 - **Society**: group labels (race/faith) and norms (beauty) influencing trust, mate choice, cooperation, and conflict.
 - **Events**: stochastic shocks (disease, drought, opportunity, tragedy) parameterized and observable in logs.
+- **Philosophical school / worldview**: a configurable “lens” that changes how agents interpret self/other, attachment, ethics, and the karma→rebirth→liberation mechanics (implemented as a pluggable ruleset, not hard-coded into the engine).
+
+### Bringing in philosophical schools of thought (planned)
+At some point this simulation should support multiple **worldviews** as first-class configuration, such as:
+- **Advaita (Adhvaitha)**: non-dual framing; emphasis on ignorance/knowledge; reduced self/other separation.
+- **Vishishtadvaita (Vishistadvaitha)**: qualified non-dual framing; enduring individuality in relation to the whole.
+- **Buddhist lenses**: no fixed self, dependent origination; attachment/craving as drivers of suffering; liberation as reduction of craving/ignorance.
+
+Implementation-wise, these won’t be treated as “religion labels” like `faith`. Instead, they act as **simulation rule modules** that can change:
+- **Decision policy**: cooperation vs hoarding vs harm vs help; attachment, compassion, renunciation as parameters.
+- **Suffering/wellbeing model**: how craving/aversion affects wellbeing beyond material resources.
+- **Karma semantics**: how actions update karma and which actions matter.
+- **Rebirth mapping**: how karma affects next-life traits and circumstances.
+- **Liberation / exit conditions** (optional): when a soul stops rebirthing (e.g., thresholds, convergent criteria, or explicit “moksha/nirvana” state in the model).
+
+The key constraint: we’ll keep the **core engine neutral** and make worldviews pluggable so we can run the same initial world under different lenses and compare outcomes.
 
 ### Why a phases approach
 This idea contains many interacting systems. If we build UI/visuals first, we’ll optimize for looks before we know the world model creates interesting behavior.
@@ -57,6 +74,12 @@ Each phase should end with something runnable and measurable.
 - Expanded event catalogue and world shocks
 - Side-by-side scenario runner (good-biased vs bad-biased, scarcity vs abundance)
 - Saved runs, replay, and comparative dashboards
+
+### Phase 5 — Philosophical schools as pluggable worldviews
+- Define a `Worldview` interface (policy + karma + rebirth + liberation hooks)
+- Implement first set of worldview modules (Advaita, Vishishtadvaita, Buddhist lens)
+- Add scenario comparison: same seed/config, different worldview → compare metrics and liberation rates
+- Add new metrics relevant to worldviews (e.g., attachment/craving proxy, compassion proxy, “liberation” events)
 
 ## V1 technical plan (build the minimum interesting world)
 V1 is the smallest version that can answer: **does “good vs bad bias” + “scarcity vs abundance” meaningfully change world-level outcomes over generations?**
