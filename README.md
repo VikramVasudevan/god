@@ -91,6 +91,23 @@ V1 is the smallest version that can answer: **does “good vs bad bias” + “s
   - view metrics and charts
 - Runs are reproducible via seed + config snapshot.
 
+### Running (Windows / PowerShell)
+From `c:\Workspace\agentic-ai\projects\god`:
+
+- Run the CLI (prints JSON):
+
+```bash
+uv sync
+uv run god-sim --ticks 200 --num-souls 300
+```
+
+- Run the UI (Streamlit):
+
+```bash
+uv sync
+uv run streamlit run .\src\god_sim\app\streamlit_app.py
+```
+
 ### Recommended stack
 - **Python**: `dataclasses` + type hints
 - **Numerics**: `numpy` (optionally `pandas` if it helps)

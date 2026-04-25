@@ -1,7 +1,18 @@
 [project]
 name = "god"
 version = "0.1.0"
-description = "Add your description here"
+description = "A reincarnation-based social simulation sandbox."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "numpy",
+    "pandas",
+    "plotly",
+    "streamlit",
+]
+
+[project.scripts]
+god-sim = "god_sim.cli:main"
+
+[tool.uv]
+package = true
