@@ -137,6 +137,51 @@ def check_ollama_health(base_url: str, model: str, timeout_s: int = 5) -> dict[s
         }
 
 
+def _get_llama_cpp_model(cfg: InsightConfig) -> Any:
+    try:
+        from llama_cpp import Llama
+    except ImportError as e:
+        raise RuntimeError(
+            "llama-cpp-python is not installed or could not be loaded. "
+            "Ensure it is in requirements.txt and properly installed in the environment."
+        ) from e
+
+    model_path = Path(cfg.model_path)
+    if not model_path.exists():
+        if not cfg.auto_download_model:
+            raise RuntimeError(
+                f"Model path does not exist: {cfg.model_path}. "
+                "Set GOD_LLM_AUTO_DOWNLOAD=1 or download model manually."
+            )
+        downloaded = download_model(
+            repo_id=cfg.hf_repo_id,
+            filename=cfg.hf_filename,
+            out_dir=model_path.parent if str(model_path.parent) not in ("", ".") else Path("models"),
+        )
+        model_path = downloaded
+
+    if model_path.suffix.lower() != ".gguf":
+        raise RuntimeError(
+            "llama_cpp requires a GGUF model file. "
+            f"Current file is '{model_path.name}'. "
+            "Use a .gguf model path for provider=llama_cpp, or switch provider to 'ollama' "
+            "and use an Ollama model name."
+        )
+
+    try:
+        return Llama(
+            model_path=str(model_path),
+            n_ctx=cfg.n_ctx,
+            n_threads=None if cfg.n_threads <= 0 else cfg.n_threads,
+            verbose=False,
+        )
+    except Exception as e:
+        raise RuntimeError(
+            "Failed to load model with llama_cpp. "
+            "Ensure the file is a valid GGUF model compatible with llama.cpp."
+        ) from e
+
+
 def generate_insights(sim_output: dict[str, Any], cfg: InsightConfig | None = None, timeout_s: int = 120) -> str:
     cfg = cfg or insight_config_from_env()
     summary = build_run_summary(sim_output)
@@ -165,49 +210,7 @@ def generate_insights(sim_output: dict[str, Any], cfg: InsightConfig | None = No
         return str(data.get("response", "")).strip()
 
     if cfg.provider == "llama_cpp":
-        try:
-            from llama_cpp import Llama
-        except ImportError as e:
-            raise RuntimeError(
-                "llama-cpp-python is not installed or could not be loaded. "
-                "Ensure it is in requirements.txt and properly installed in the environment."
-            ) from e
-
-        model_path = Path(cfg.model_path)
-        if not model_path.exists():
-            if not cfg.auto_download_model:
-                raise RuntimeError(
-                    f"Model path does not exist: {cfg.model_path}. "
-                    "Set GOD_LLM_AUTO_DOWNLOAD=1 or download model manually."
-                )
-            downloaded = download_model(
-                repo_id=cfg.hf_repo_id,
-                filename=cfg.hf_filename,
-                out_dir=model_path.parent if str(model_path.parent) not in ("", ".") else Path("models"),
-            )
-            model_path = downloaded
-
-        if model_path.suffix.lower() != ".gguf":
-            raise RuntimeError(
-                "llama_cpp requires a GGUF model file. "
-                f"Current file is '{model_path.name}'. "
-                "Use a .gguf model path for provider=llama_cpp, or switch provider to 'ollama' "
-                "and use an Ollama model name."
-            )
-
-        try:
-            llm = Llama(
-                model_path=str(model_path),
-                n_ctx=cfg.n_ctx,
-                n_threads=None if cfg.n_threads <= 0 else cfg.n_threads,
-                verbose=False,
-            )
-        except Exception as e:
-            raise RuntimeError(
-                "Failed to load model with llama_cpp. "
-                "Ensure the file is a valid GGUF model compatible with llama.cpp."
-            ) from e
-
+        llm = _get_llama_cpp_model(cfg)
         prompt = f"{_system_prompt()}\n\n{user_prompt}"
         out = llm(
             prompt,
@@ -235,6 +238,7 @@ def generate_insights(sim_output: dict[str, Any], cfg: InsightConfig | None = No
     r.raise_for_status()
     data = r.json()
     return str(data["choices"][0]["message"]["content"]).strip()
+
 
 def generate_comparative_insights(out_a: dict[str, Any], out_b: dict[str, Any], cfg: InsightConfig | None = None, timeout_s: int = 120) -> str:
     cfg = cfg or insight_config_from_env()
@@ -266,15 +270,14 @@ def generate_comparative_insights(out_a: dict[str, Any], out_b: dict[str, Any], 
         return str(r.json().get("response", "")).strip()
 
     if cfg.provider == "llama_cpp":
-        try:
-            from llama_cpp import Llama
-        except ImportError:
-            raise RuntimeError("llama-cpp-python not available.")
-
-        model_path = Path(cfg.model_path)
-        llm = Llama(model_path=str(model_path), n_ctx=cfg.n_ctx, n_threads=None if cfg.n_threads <= 0 else cfg.n_threads, verbose=False)
+        llm = _get_llama_cpp_model(cfg)
         prompt = f"System: You are a comparative analyst.\nUser: {user_prompt}"
-        out = llm(prompt, max_tokens=cfg.max_tokens, temperature=cfg.temperature, stop=["</s>"])
+        out = llm(
+            prompt,
+            max_tokens=cfg.max_tokens,
+            temperature=cfg.temperature,
+            stop=["</s>"],
+        )
         return str(out["choices"][0]["text"]).strip()
 
     # OpenAI-compatible
