@@ -31,12 +31,12 @@ class InsightConfig:
     auto_download_model: bool = True
     hf_repo_id: str = "bartowski/gemma-2-2b-it-GGUF"
     hf_filename: str = "gemma-2-2b-it-Q4_K_M.gguf"
-    n_ctx: int = 4096
+    n_ctx: int = 8192
     n_threads: int = 0  # 0 = let llama.cpp decide
 
     # Generation defaults
     temperature: float = 0.2
-    max_tokens: int = 600
+    max_tokens: int = 1000
 
 
 def insight_config_from_env() -> InsightConfig:
@@ -56,10 +56,10 @@ def insight_config_from_env() -> InsightConfig:
         auto_download_model=os.getenv("GOD_LLM_AUTO_DOWNLOAD", "1").strip().lower() in ("1", "true", "yes", "on"),
         hf_repo_id=os.getenv("GOD_LLM_HF_REPO", "bartowski/gemma-2-2b-it-GGUF"),
         hf_filename=os.getenv("GOD_LLM_HF_FILE", "gemma-2-2b-it-Q4_K_M.gguf"),
-        n_ctx=int(os.getenv("GOD_LLM_N_CTX", "4096")),
+        n_ctx=int(os.getenv("GOD_LLM_N_CTX", "8192")),
         n_threads=int(os.getenv("GOD_LLM_N_THREADS", "0")),
         temperature=float(os.getenv("GOD_LLM_TEMPERATURE", "0.2")),
-        max_tokens=int(os.getenv("GOD_LLM_MAX_TOKENS", "600")),
+        max_tokens=int(os.getenv("GOD_LLM_MAX_TOKENS", "1000")),
     )
 
 
@@ -72,7 +72,7 @@ def _system_prompt() -> str:
     )
 
 
-def build_run_summary(sim_output: dict[str, Any], df_tail_rows: int = 25) -> dict[str, Any]:
+def build_run_summary(sim_output: dict[str, Any], df_tail_rows: int = 15) -> dict[str, Any]:
     series = sim_output.get("series", [])
     cfg = sim_output.get("config", {})
 
