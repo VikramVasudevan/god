@@ -5,7 +5,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+import numpy as np
 
+class SimulationEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, (datetime, Path)):
+            return str(obj)
+        return super().default(obj)
 
 DEFAULT_HISTORY_PATH = Path("data/run_history.json")
 
@@ -45,7 +57,7 @@ def append_run_history(sim_output: dict[str, Any], path: Path = DEFAULT_HISTORY_
     runs = _safe_load_json_array(path)
     record = build_run_record(sim_output)
     runs.append(record)
-    path.write_text(json.dumps(runs, indent=2), encoding="utf-8")
+    path.write_text(json.dumps(runs, indent=2, cls=SimulationEncoder), encoding="utf-8")
     return record
 
 
