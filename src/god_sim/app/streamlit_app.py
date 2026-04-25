@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+# Add the 'src' directory to sys.path to ensure 'god_sim' package is findable
+# This handles cases where the app is run from different working directories
+src_path = str(Path(__file__).parent.parent.parent)
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
