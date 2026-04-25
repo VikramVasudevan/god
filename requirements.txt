@@ -1,0 +1,7 @@
+huggingface-hub
+llama-cpp-python
+numpy
+pandas
+plotly
+requests
+streamlit
