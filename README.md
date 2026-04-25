@@ -1,3 +1,14 @@
+---
+title: GOD Simulation
+emoji: 🕉️
+colorFrom: indigo
+colorTo: purple
+sdk: streamlit
+app_file: src/god_sim/app/streamlit_app.py
+pinned: false
+license: mit
+---
+
 ## GOD — a reincarnation-based social simulation
 
 This is a Python project to simulate a “world engine” where a **fixed pool of souls** cycles through **birth → life → death → rebirth**, accumulating **karma** and experiencing **scarce shared resources**, **social identity**, and **events**.
