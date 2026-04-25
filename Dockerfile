@@ -38,6 +38,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY --chown=user . .
 
+# Install the current project in editable mode so 'god_sim' is recognizable as a module
+# We use --no-deps because we already installed dependencies from requirements.txt
+RUN pip install --no-cache-dir --no-deps -e .
+
 # Expose the port Streamlit runs on
 EXPOSE 7860
 
