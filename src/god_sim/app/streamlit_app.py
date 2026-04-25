@@ -86,7 +86,7 @@ def render_dashboard(out: dict) -> None:
     st.subheader("Time series")
     left, right = st.columns(2)
     with left:
-        st.plotly_chart(px.line(df, x="time", y=["mean_wellbeing", "mean_health"], title="Wellbeing & Health"), use_container_width=True)
+        st.plotly_chart(px.line(df, x="time", y=["mean_wellbeing", "mean_health"], title="Wellbeing & Health"), width="stretch")
         info_box(
             "Wellbeing & Health graph",
             (
@@ -94,7 +94,7 @@ def render_dashboard(out: dict) -> None:
                 "resource/event conditions; falling lines suggest sustained stress, scarcity, or frequent negative events."
             ),
         )
-        st.plotly_chart(px.line(df, x="time", y=["mean_karma"], title="Mean karma"), use_container_width=True)
+        st.plotly_chart(px.line(df, x="time", y=["mean_karma"], title="Mean karma"), width="stretch")
         info_box(
             "Mean karma graph",
             (
@@ -103,7 +103,7 @@ def render_dashboard(out: dict) -> None:
             ),
         )
     with right:
-        st.plotly_chart(px.line(df, x="time", y=["resource"], title="Resources"), use_container_width=True)
+        st.plotly_chart(px.line(df, x="time", y=["resource"], title="Resources"), width="stretch")
         info_box(
             "Resources graph",
             (
@@ -111,7 +111,7 @@ def render_dashboard(out: dict) -> None:
                 "stable or rising values indicate replenishment is keeping up with demand."
             ),
         )
-        st.plotly_chart(px.bar(df, x="time", y="events", title="Events per tick"), use_container_width=True)
+        st.plotly_chart(px.bar(df, x="time", y="events", title="Events per tick"), width="stretch")
         info_box(
             "Events per tick graph",
             (
@@ -122,7 +122,7 @@ def render_dashboard(out: dict) -> None:
 
     with st.expander("Raw output"):
         st.json(out["config"])
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width="stretch")
 
 with st.sidebar:
     st.header("Scenario")
@@ -217,7 +217,7 @@ if history:
                 "event_rate": cfg_hist.get("event_rate", ""),
             }
         )
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), width="stretch")
 else:
     st.caption("No runs stored yet. Run a simulation to create history.")
 
